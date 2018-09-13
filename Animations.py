@@ -1,7 +1,11 @@
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
+from typing import Iterable, List
 
-import parameters as param
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+import matplotlib.patches as patches
+import matplotlib.artist as artist
+
+from parameters import MassSpringDamper as msdParam
 
 
 class Animation:
@@ -11,32 +15,37 @@ class Animation:
 
     def __init__(self):
         self._do_init = True
-        self.figure, self.axis = plt.subplots()
+        self.figure = plt.figure()
+        self.axis = self.figure.add_subplot(111)
 
 
 class MassSpringDamper(Animation):
 
     def __init__(self):
         Animation.__init__(self)
-        self._width = param.MassSpringDamper.WIDTH
-        self._height = param.MassSpringDamper.HEIGHT
-        self.mass = None
+        self._width = msdParam.WIDTH
+        self._height = msdParam.HEIGHT
+        self.mass: patches.Rectangle = None
 
-    def draw(self, z_pos):
-        xy = (z_pos, 0)
-        if self._do_init:
-            self.mass = patches.Rectangle(xy, width=param.MassSpringDamper.WIDTH, height=param.MassSpringDamper.HEIGHT)
-            self.axis.set_xlim(left=-5, right=5)
-            self.axis.set_ylim(bottom=-5, top=5)
+    def animate(self, z_0=0, z: Iterable=None) -> animation.FuncAnimation:
+
+        def init_func() -> List[artist.Artist]:
+            self.axis.set_xbound(-4, 4)
+            self.axis.set_ybound(-3, 3)
+            self.mass = patches.Rectangle((z_0, 0), 1, 1)
             self.axis.add_patch(self.mass)
-            self._do_init = False
-        else:
-            self.mass.xy = xy
+            return [self.mass, ]
+
+        def func(z):
+            self.mass.xy = (z, 0)
+            return [self.mass, ]
+
+        return animation.FuncAnimation(self.figure, func=func, init_func=init_func, blit=True, frames=z)
 
 
 if __name__ == '__main__':
     a = MassSpringDamper()
     i = 0
-    a.draw(i)
+    anim = a.animate()
     plt.waitforbuttonpress()
     plt.close()
