@@ -6,6 +6,7 @@ import matplotlib.patches as patches
 import matplotlib.artist as artist
 
 from parameters import MassSpringDamper as msdParam
+import signal_generator as sg
 
 
 class Animation:
@@ -36,16 +37,24 @@ class MassSpringDamper(Animation):
             self.axis.add_patch(self.mass)
             return [self.mass, ]
 
-        def func(z):
-            self.mass.xy = (z, 0)
+        def func(z_current):
+            self.mass.xy = (z_current, 0)
             return [self.mass, ]
 
         return animation.FuncAnimation(self.figure, func=func, init_func=init_func, blit=True, frames=z)
 
 
+class BallAndBeam(Animation):
+    pass
+
+
+class PlanarVTOL(Animation):
+    pass
+
+
 if __name__ == '__main__':
     a = MassSpringDamper()
     i = 0
-    anim = a.animate()
+    anim = a.animate(z=sg.sin())
     plt.waitforbuttonpress()
     plt.close()
