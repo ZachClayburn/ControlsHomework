@@ -5,7 +5,7 @@ import matplotlib.animation as animation
 import matplotlib.patches as patches
 import matplotlib.artist as artist
 
-from parameters import MassSpringDamper as msdParam
+import parameters
 import signal_generator as sg
 
 
@@ -22,10 +22,11 @@ class Animation:
 
 class MassSpringDamper(Animation):
 
-    def __init__(self):
+    def __init__(self, **kwargs):
+        params = {**kwargs, **parameters.MassSpringDamper}
         Animation.__init__(self)
-        self._width = msdParam.WIDTH
-        self._height = msdParam.HEIGHT
+        self._width = params['width']
+        self._height = params['height']
         self.mass: patches.Rectangle = None
 
     def animate(self, z_0=0, z: Iterable=None) -> animation.FuncAnimation:
