@@ -8,8 +8,8 @@ MassSpringDamper = {
 
 BallAndBeam = {
     "beamLength": 1.0,
-    "beamWidth": 1.0,
-    "ballRadius": 1.0,
+    "beamWidth": 0.01,
+    "ballRadius": 0.1,
 }
 
 
