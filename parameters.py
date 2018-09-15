@@ -14,7 +14,9 @@ BallAndBeam = {
 
 
 PlanarVTOL = {
-    'craftWidth': 1.0,
-    'craftHeight': 0.01,
-
+    'bodyWidth': 0.2,
+    'bodyHeight': 0.125,
+    'wingSpacing': 0.3,
+    'wingMajorAxis': 0.25,
+    'wingMinorAxis': 0.1,
 }
