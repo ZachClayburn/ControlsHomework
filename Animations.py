@@ -85,7 +85,7 @@ class BallAndBeam(Animation):
             self.ball.center = xy
             return [self.beam, self.ball, ]
 
-        return animation.FuncAnimation(self.figure, func=func, init_func=init_func, blit=True, frames=q)
+        return animation.FuncAnimation(self.figure, func=func, init_func=init_func, blit=True, frames=q, interval=40)
 
 
 class PlanarVTOL(Animation):
@@ -93,6 +93,8 @@ class PlanarVTOL(Animation):
     def __init__(self, **kwargs):
         super().__init__()
         params = {**kwargs, **parameters.PlanarVTOL}
+        self.craftWidth = params['craftWidth']
+        self.craftHeight = params['craftHeight']
 
     def animate(self, q_0=(0, 0, 0), q: Iterable = None) -> animation.FuncAnimation:
 
@@ -106,9 +108,10 @@ class PlanarVTOL(Animation):
 
 
 if __name__ == '__main__':
-    a = BallAndBeam()
+    a = MassSpringDamper()
     i = 0
-    q_frames = zip(sg.sin(t_step=0.04, frequency=0.5), sg.sin(amplitude=180, t_step=0.04, frequency=0.5), )
-    anim = a.animate(q=q_frames)
-    plt.waitforbuttonpress()
+    # q_frames = zip(sg.sin(t_step=0.04, frequency=0.5, t_final=10), sg.sin(amplitude=180, t_step=0.04, frequency=0.7, t_final=10), )
+    anim = a.animate(z=sg.sin(t_step=0.04, t_final=10))
+    # movie_writer = animation.MovieWriter()
+    anim.save("out/massSpringDamper.mp4", fps=20)
     plt.close()

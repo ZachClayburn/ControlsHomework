@@ -14,5 +14,7 @@ BallAndBeam = {
 
 
 PlanarVTOL = {
+    'craftWidth': 1.0,
+    'craftHeight': 0.01,
 
 }
