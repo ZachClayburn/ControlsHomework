@@ -5,6 +5,7 @@ import matplotlib.animation as animation
 import matplotlib.patches as patches
 import matplotlib.artist as artist
 import math
+import numpy as np
 
 import parameters
 import signal_generator as sg
@@ -58,31 +59,42 @@ class BallAndBeam(Animation):
         self.ball: patches.Circle = None
 
     def animate(self, q_0=(0, 0), q: Iterable=None) -> animation.FuncAnimation:
+        """
+        Animate a ball and beam system.
 
-        def get_ball_xy(q_current: Tuple[float, float]) -> Tuple[float, float]:
-            z = q_current[0]
-            cos_a = math.cos(math.radians(q_current[1]))
-            sin_a = math.sin(math.radians(q_current[1]))
-            return z * cos_a - self.ballRadius * sin_a, z * sin_a + self.ballRadius * cos_a
+        :param q_0: The initial position of the system.In the form of (z, theta)' where z is the balls distance from
+            the origin and theta is the beams angle, in radians.
+        :param q: Iterable of the same format as q_o.
+        :return: An animation object of the system.
+        """
+
+        def get_rotation(q_current: Tuple[float, float]) -> np.ndarray:
+            cos_a = np.cos(q_current[1])
+            sin_a = np.sin(q_current[1])
+            return np.array([[cos_a, -sin_a], [sin_a, cos_a]])
 
         def init_func() -> List[artist.Artist]:
             bound = self.beamLength * 1.1
             self.axis.set_xbound(-bound, bound)
             self.axis.set_ybound(-bound, bound)
 
-            xy_rectangle = (q_0[1], self.beamWidth / 2)
+            rotation = get_rotation(q_0)
+
+            xy_rectangle = rotation @ np.array([[0, -self.beamWidth / 2]]).T
             self.beam = patches.Rectangle(xy_rectangle, self.beamLength, self.beamWidth, q_0[0])
             self.axis.add_patch(self.beam)
 
-            self.ball = patches.Circle(get_ball_xy(q_0), self.ballRadius)
+            ball_xy = rotation @ np.array([[q_0[0], self.ballRadius + self.beamWidth / 2]]).T
+            self.ball = patches.Circle(ball_xy, self.ballRadius, facecolor='red')
             self.axis.add_patch(self.ball)
 
             return [self.beam, self.ball, ]
 
         def func(q_current):
-            self.beam.angle = q_current[1]
-            xy = get_ball_xy(q_current)
-            self.ball.center = xy
+            rotation = get_rotation(q_current)
+            self.beam.angle = math.degrees(q_current[1])
+            self.beam.xy = rotation @ np.array([[0, -self.beamWidth / 2]]).T
+            self.ball.center = rotation @ np.array([[q_current[0], self.ballRadius + self.beamWidth / 2]]).T
             return [self.beam, self.ball, ]
 
         return animation.FuncAnimation(self.figure, func=func, init_func=init_func, blit=True, frames=q, interval=40)
@@ -106,12 +118,3 @@ class PlanarVTOL(Animation):
 
         return animation.FuncAnimation(self.figure, func=func, init_func=init_func, blit=True, frames=q, interval=40)
 
-
-if __name__ == '__main__':
-    a = MassSpringDamper()
-    i = 0
-    # q_frames = zip(sg.sin(t_step=0.04, frequency=0.5, t_final=10), sg.sin(amplitude=180, t_step=0.04, frequency=0.7, t_final=10), )
-    anim = a.animate(z=sg.sin(t_step=0.04, t_final=10))
-    # movie_writer = animation.MovieWriter()
-    anim.save("out/massSpringDamper.mp4", fps=20)
-    plt.close()
