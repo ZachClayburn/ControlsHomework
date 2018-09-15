@@ -28,20 +28,29 @@ class MassSpringDamper(Animation):
         self._height = params['height']
         self.mass: patches.Rectangle = None
 
-    def animate(self, z_0=0, z: Iterable=None) -> animation.FuncAnimation:
+    def animate(self, q_0=0, q: Iterable = None) -> animation.FuncAnimation:
+        """
+        Animate the mass spring damper system.
+
+        :param q_0: The initial spring position
+        :param q: An iterator of th spring positions
+        :return:  An animation object of the system.
+        """
 
         def init_func() -> List[artist.Artist]:
-            self.axis.set_xbound(-4, 4)
-            self.axis.set_ybound(-3, 3)
-            self.mass = patches.Rectangle((z_0, 0), self._width, self._height)
+            bound = self._height * 4
+            self.axis.set_xbound((-bound + self._height) / 2, (bound + self._height) / 2)
+            self.axis.set_ybound(0, bound)
+            self.mass = patches.Rectangle((q_0, 0), self._width, self._height)
             self.axis.add_patch(self.mass)
             return [self.mass, ]
 
-        def func(z_current):
-            self.mass.xy = (z_current, 0)
+        def func(q_current):
+            self.mass.xy = (q_current, 0)
             return [self.mass, ]
 
-        return animation.FuncAnimation(self.figure, func=func, init_func=init_func, blit=True, frames=z)
+        return animation.FuncAnimation(self.figure, func=func, init_func=init_func, blit=True,
+                                       frames=q, interval=40, repeat=False, save_count=9999)
 
 
 class BallAndBeam(Animation):
@@ -55,7 +64,7 @@ class BallAndBeam(Animation):
         self.beam: patches.Rectangle = None
         self.ball: patches.Circle = None
 
-    def animate(self, q_0=(0, 0), q: Iterable=None) -> animation.FuncAnimation:
+    def animate(self, q_0=(0, 0), q: Iterable = None) -> animation.FuncAnimation:
         """
         Animate a ball and beam system.
 
@@ -94,7 +103,8 @@ class BallAndBeam(Animation):
             self.ball.center = rotation @ np.array([[q_current[0], self.ballRadius + self.beamWidth / 2]]).T
             return [self.beam, self.ball, ]
 
-        return animation.FuncAnimation(self.figure, func=func, init_func=init_func, blit=True, frames=q, interval=40)
+        return animation.FuncAnimation(self.figure, func=func, init_func=init_func, blit=True,
+                                       frames=q, interval=40, repeat=False, save_count=9999)
 
 
 class PlanarVTOL(Animation):
@@ -175,5 +185,5 @@ class PlanarVTOL(Animation):
 
             return [self.body, self.leftWing, self.rightWing, self.target, ]
 
-        return animation.FuncAnimation(self.figure, func=func, init_func=init_func, blit=True, frames=q, interval=40)
-
+        return animation.FuncAnimation(self.figure, func=func, init_func=init_func, blit=True,
+                                       frames=q, interval=40, save_count=9999)
