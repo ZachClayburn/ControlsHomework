@@ -1,14 +1,17 @@
-from typing import Iterable, List, Tuple
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
-import matplotlib.patches as patches
-import matplotlib.artist as artist
 import math
+from abc import ABC
+from typing import Iterable, List, Tuple, Callable
+
+import matplotlib.animation as animation
+import matplotlib.artist as artist
+import matplotlib.patches as patches
+import matplotlib.pyplot as plt
 import numpy as np
+
 import parameters
 
 
-class Animation:
+class Animation(ABC):
     """
     An abstract class for all animation classes
     """
@@ -17,6 +20,19 @@ class Animation:
         self._do_init = True
         self.figure = plt.figure()
         self.axis = self.figure.add_subplot(111)
+
+    def get_init_func(self, q_0) -> Callable[[], List[artist.Artist]]:
+        raise NotImplementedError
+
+    def get_step_func(self) -> Callable[[Tuple], List[artist.Artist]]:
+        raise NotImplementedError
+
+    def animate_frame(self, q_current: Tuple):
+        if self._do_init:
+            self.get_init_func(q_current)()
+            self._do_init = False
+        else:
+            self.get_step_func()(q_current)
 
 
 class MassSpringDamper(Animation):
@@ -28,6 +44,22 @@ class MassSpringDamper(Animation):
         self._height = params['height']
         self.mass: patches.Rectangle = None
 
+    def get_init_func(self, q_0) -> Callable[[], List[artist.Artist]]:
+        def init_func() -> List[artist.Artist]:
+            bound = self._height * 4
+            self.axis.set_xbound((-bound + self._height) / 2, (bound + self._height) / 2)
+            self.axis.set_ybound(0, bound)
+            self.mass = patches.Rectangle((q_0, 0), self._width, self._height)
+            self.axis.add_patch(self.mass)
+            return [self.mass, ]
+        return init_func
+
+    def get_step_func(self) -> Callable[[Tuple], List[artist.Artist]]:
+        def func(q_current):
+            self.mass.xy = (q_current, 0)
+            return [self.mass, ]
+        return func
+
     def animate(self, q_0=0, q: Iterable = None) -> animation.FuncAnimation:
         """
         Animate the mass spring damper system.
@@ -36,21 +68,8 @@ class MassSpringDamper(Animation):
         :param q: An iterator of th spring positions
         :return:  An animation object of the system.
         """
-
-        def init_func() -> List[artist.Artist]:
-            bound = self._height * 4
-            self.axis.set_xbound((-bound + self._height) / 2, (bound + self._height) / 2)
-            self.axis.set_ybound(0, bound)
-            self.mass = patches.Rectangle((q_0, 0), self._width, self._height)
-            self.axis.add_patch(self.mass)
-            return [self.mass, ]
-
-        def func(q_current):
-            self.mass.xy = (q_current, 0)
-            return [self.mass, ]
-
-        return animation.FuncAnimation(self.figure, func=func, init_func=init_func, blit=True,
-                                       frames=q, interval=40, repeat=False, save_count=9999)
+        return animation.FuncAnimation(self.figure, func=self.get_step_func(), init_func=self.get_init_func(q_0),
+                                       blit=True, frames=q, interval=40, repeat=False, save_count=9999)
 
 
 class BallAndBeam(Animation):
@@ -64,27 +83,13 @@ class BallAndBeam(Animation):
         self.beam: patches.Rectangle = None
         self.ball: patches.Circle = None
 
-    def animate(self, q_0=(0, 0), q: Iterable = None) -> animation.FuncAnimation:
-        """
-        Animate a ball and beam system.
-
-        :param q_0: The initial position of the system.In the form of (z, theta)' where z is the balls distance from
-            the origin and theta is the beams angle, in radians.
-        :param q: Iterable of the same format as q_o.
-        :return: An animation object of the system.
-        """
-
-        def get_rotation(q_current: Tuple[float, float]) -> np.ndarray:
-            cos_a = np.cos(q_current[1])
-            sin_a = np.sin(q_current[1])
-            return np.array([[cos_a, -sin_a], [sin_a, cos_a]])
-
+    def get_init_func(self, q_0) -> Callable[[], List[artist.Artist]]:
         def init_func() -> List[artist.Artist]:
             bound = self.beamLength * 1.1
             self.axis.set_xbound(-bound, bound)
             self.axis.set_ybound(-bound, bound)
 
-            rotation = get_rotation(q_0)
+            rotation = _get_rotation(q_0[1])
 
             xy_rectangle = rotation @ np.array([[0, -self.beamWidth / 2]]).T
             self.beam = patches.Rectangle(xy_rectangle, self.beamLength, self.beamWidth, q_0[0])
@@ -95,16 +100,29 @@ class BallAndBeam(Animation):
             self.axis.add_patch(self.ball)
 
             return [self.beam, self.ball, ]
+        return init_func
 
+    def get_step_func(self) -> Callable[[Tuple], List[artist.Artist]]:
         def func(q_current):
-            rotation = get_rotation(q_current)
+            rotation = _get_rotation(q_current[1])
             self.beam.angle = math.degrees(q_current[1])
             self.beam.xy = rotation @ np.array([[0, -self.beamWidth / 2]]).T
             self.ball.center = rotation @ np.array([[q_current[0], self.ballRadius + self.beamWidth / 2]]).T
             return [self.beam, self.ball, ]
+        return func
 
-        return animation.FuncAnimation(self.figure, func=func, init_func=init_func, blit=True,
-                                       frames=q, interval=40, repeat=False, save_count=9999)
+    def animate(self, q_0=(0, 0), q: Iterable = None) -> animation.FuncAnimation:
+        """
+        Animate a ball and beam system.
+
+        :param q_0: The initial position of the system.In the form of (z, theta)' where z is the balls distance from
+            the origin and theta is the beams angle, in radians.
+        :param q: Iterable of the same format as q_o.
+        :return: An animation object of the system.
+        """
+
+        return animation.FuncAnimation(self.figure, func=self.get_step_func(), init_func=self.get_init_func(q_0),
+                                       blit=True, frames=q, interval=40, repeat=False, save_count=9999)
 
 
 class PlanarVTOL(Animation):
@@ -123,27 +141,12 @@ class PlanarVTOL(Animation):
         self.rightWing: patches.Ellipse = None
         self.target: patches.Rectangle = None
 
-    def animate(self, q_0=(0, 0, 0, 0), q: Iterable = None) -> animation.FuncAnimation:
-        """
-        Animate the planar VTOL system.
-
-        :param q_0: The initial position of the system, in the form (z_vehicle, z_target, height, theta)', where z is
-            the horizontal position of the vehicle and target, respectively, height it the vertical elevation of the
-            vehicle's C.O.M. and theta is the ccw rotation about the C.O.M. of the vehicle from vertical.
-        :param q: Iterable of the same format as q_o.
-        :return:  An animation object of the system.
-        """
-
-        def get_rotation(q_current: Tuple[float, float, float, float]) -> np.ndarray:
-            cos_a = np.cos(q_current[3])
-            sin_a = np.sin(q_current[3])
-            return np.array([[cos_a, -sin_a], [sin_a, cos_a]])
-
+    def get_init_func(self, q_0) -> Callable[[], List[artist.Artist]]:
         def init_func() -> List[artist.Artist]:
             self.axis.set_ybound(0, 4)
             self.axis.set_xbound(-2, 2)
 
-            rotation = get_rotation(q_0)
+            rotation = _get_rotation(q_0[3])
             center_of_mass_xy = np.array([[q_0[0], q_0[2]]]).T
 
             body_xy = center_of_mass_xy + rotation @ np.array([[- self.bodyWidth / 2, - self.bodyHeight / 2]]).T
@@ -164,9 +167,11 @@ class PlanarVTOL(Animation):
             self.axis.add_patch(self.target)
 
             return [self.body, self.leftWing, self.rightWing, self.target, ]
+        return init_func
 
+    def get_step_func(self) -> Callable[[Tuple], List[artist.Artist]]:
         def func(q_current):
-            rotation = get_rotation(q_current)
+            rotation = _get_rotation(q_current[3])
             center_of_mass_xy = np.array([[q_current[0], q_current[2]]]).T
 
             body_xy = center_of_mass_xy + rotation @ np.array([[- self.bodyWidth / 2, - self.bodyHeight / 2]]).T
@@ -184,6 +189,24 @@ class PlanarVTOL(Animation):
             self.target.xy = (q_current[1] - self.bodyWidth / 2, 0)
 
             return [self.body, self.leftWing, self.rightWing, self.target, ]
+        return func
 
-        return animation.FuncAnimation(self.figure, func=func, init_func=init_func, blit=True,
-                                       frames=q, interval=40, save_count=9999)
+    def animate(self, q_0=(0, 0, 0, 0), q: Iterable = None) -> animation.FuncAnimation:
+        """
+        Animate the planar VTOL system.
+
+        :param q_0: The initial position of the system, in the form (z_vehicle, z_target, height, theta)', where z is
+            the horizontal position of the vehicle and target, respectively, height it the vertical elevation of the
+            vehicle's C.O.M. and theta is the ccw rotation about the C.O.M. of the vehicle from vertical.
+        :param q: Iterable of the same format as q_o.
+        :return:  An animation object of the system.
+        """
+
+        return animation.FuncAnimation(self.figure, func=self.get_step_func(), init_func=self.get_init_func(q_0),
+                                       blit=True, frames=q, interval=40, save_count=9999)
+
+
+def _get_rotation(angle: float):
+    cos_a = np.cos(angle)
+    sin_a = np.sin(angle)
+    return np.array([[cos_a, -sin_a], [sin_a, cos_a]])
