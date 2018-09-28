@@ -34,8 +34,15 @@ class Animation(ABC):
         else:
             self.get_step_func()(q_current)
 
+    def animate(self, q_0, q: Iterable = None):
+        return animation.FuncAnimation(self.figure, func=self.get_step_func(), init_func=self.get_init_func(q_0),
+                                       blit=True, frames=q, interval=40, repeat=False)
+
 
 class MassSpringDamper(Animation):
+    """
+    In this system, q is z, where z is the displacement of the mass from equilibrium
+    """
 
     def __init__(self, **kwargs):
         super().__init__()
@@ -60,19 +67,12 @@ class MassSpringDamper(Animation):
             return [self.mass, ]
         return func
 
-    def animate(self, q_0=0, q: Iterable = None) -> animation.FuncAnimation:
-        """
-        Animate the mass spring damper system.
-
-        :param q_0: The initial spring position
-        :param q: An iterator of th spring positions
-        :return:  An animation object of the system.
-        """
-        return animation.FuncAnimation(self.figure, func=self.get_step_func(), init_func=self.get_init_func(q_0),
-                                       blit=True, frames=q, interval=40, repeat=False, save_count=9999)
-
 
 class BallAndBeam(Animation):
+    """
+    In this system, q is in the form (z, theta)' where z is the balls distance from
+    the origin and theta is the beams angle, in radians.
+    """
 
     def __init__(self, **kwargs):
         super().__init__()
@@ -111,21 +111,13 @@ class BallAndBeam(Animation):
             return [self.beam, self.ball, ]
         return func
 
-    def animate(self, q_0=(0, 0), q: Iterable = None) -> animation.FuncAnimation:
-        """
-        Animate a ball and beam system.
-
-        :param q_0: The initial position of the system.In the form of (z, theta)' where z is the balls distance from
-            the origin and theta is the beams angle, in radians.
-        :param q: Iterable of the same format as q_o.
-        :return: An animation object of the system.
-        """
-
-        return animation.FuncAnimation(self.figure, func=self.get_step_func(), init_func=self.get_init_func(q_0),
-                                       blit=True, frames=q, interval=40, repeat=False, save_count=9999)
-
 
 class PlanarVTOL(Animation):
+    """
+    In this system, q is of the form (z_vehicle, z_target, height, theta)', where z is
+    the horizontal position of the vehicle and target, respectively, height it the vertical elevation of the
+    vehicle's C.O.M. and theta is the ccw rotation about the C.O.M. of the vehicle from vertical.
+    """
 
     def __init__(self, **kwargs):
         super().__init__()
@@ -190,20 +182,6 @@ class PlanarVTOL(Animation):
 
             return [self.body, self.leftWing, self.rightWing, self.target, ]
         return func
-
-    def animate(self, q_0=(0, 0, 0, 0), q: Iterable = None) -> animation.FuncAnimation:
-        """
-        Animate the planar VTOL system.
-
-        :param q_0: The initial position of the system, in the form (z_vehicle, z_target, height, theta)', where z is
-            the horizontal position of the vehicle and target, respectively, height it the vertical elevation of the
-            vehicle's C.O.M. and theta is the ccw rotation about the C.O.M. of the vehicle from vertical.
-        :param q: Iterable of the same format as q_o.
-        :return:  An animation object of the system.
-        """
-
-        return animation.FuncAnimation(self.figure, func=self.get_step_func(), init_func=self.get_init_func(q_0),
-                                       blit=True, frames=q, interval=40, save_count=9999)
 
 
 def _get_rotation(angle: float):
