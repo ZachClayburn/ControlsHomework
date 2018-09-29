@@ -7,13 +7,10 @@ import numpy as np
 import parameters
 
 
-class Dynamics(ABC):
+class Dynamics(ABC, parameters.GlobalParameters):
 
     def __init__(self, state: np.ndarray):
         self.state: np.ndarray = state
-        global_params = parameters.GlobalParameters
-        self.sample_rate = global_params.sample_rate
-        self.gravity = global_params.gravity
 
     def propagate_dynamics(self, u):
 
@@ -33,7 +30,7 @@ class Dynamics(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def _animation_outputs(self)-> List:
+    def _animation_outputs(self, u)-> List:
         raise NotImplementedError()
 
     def states(self) -> np.ndarray:
@@ -46,27 +43,18 @@ class Dynamics(ABC):
     def run_sim(self, inputs: Iterable) ->Iterable:
         for u in inputs:
             self.propagate_dynamics(u)
-            yield self._animation_outputs()
+            yield self._animation_outputs(u)
 
 
-class MassSpringDamper(Dynamics):
+class MassSpringDamper(Dynamics, parameters.MassSpringDamper):
     """
     The dynamics simulation of the MassSpringDamper
 
     The state is in the form (z, zdot)T
     The animation output is in the form z
     """
-
     def __init__(self):
-        params = parameters.MassSpringDamper
-        self.mass = params.mass
-        self.spring_const = params.spring_const
-        self.damping = params.damping
-        state = np.array([
-            [params.z_0],
-            [params.zdot_0]
-        ])
-        super().__init__(state=state)
+        super().__init__(state=np.asarray(self.state_0))
 
     def _derivatives(self, state: np.ndarray, u) -> np.ndarray:
         A = np.array([
@@ -83,12 +71,12 @@ class MassSpringDamper(Dynamics):
     def outputs(self) -> np.ndarray:
         pass
 
-    def _animation_outputs(self) -> List:
+    def _animation_outputs(self, u) -> List:
         z = self.state.item(0)
         return [z]
 
 
-class BallAndBeam(Dynamics):
+class BallAndBeam(Dynamics, parameters.BallAndBeam):
     """
     The dynamics simulation for the BallAndBeam System
 
@@ -97,17 +85,7 @@ class BallAndBeam(Dynamics):
     """
 
     def __init__(self):
-        params = parameters.BallAndBeam
-        self.beam_length = params.beam_length
-        self.beam_mass = params.beam_mass
-        self.ball_mass = params.ball_mass
-        state = np.array([
-            [params.z_0],
-            [params.theta_0],
-            [params.zdot_0],
-            [params.thetadot_0]
-        ])
-        super().__init__(state=state)
+        super().__init__(state=np.asanyarray(self.state_0))
 
     def _derivatives(self, state: np.ndarray, u) -> np.ndarray:
         xdot = np.zeros((4, 1))
@@ -127,22 +105,50 @@ class BallAndBeam(Dynamics):
     def outputs(self) -> np.ndarray:
         pass
 
-    def _animation_outputs(self) -> List:
+    def _animation_outputs(self, u) -> List:
         return self.state[0:2].T.tolist()[0]
 
 
-class PlanarVTOL(Dynamics):
+class PlanarVTOL(Dynamics, parameters.PlanarVTOL):
+    """
+    The dynamics simulation for the PlanarVtol System
+
+    The state is in the form (z, height, theta, zdot, heightdot, thetadot)T
+    The animation output is in the form (z_vehicle, z_target, height, theta)T
+    The input is in the form (force_left, force_right, z_target)
+    """
 
     def __init__(self):
-        params = parameters.BallAndBeam
-        state = np.ndarray([])
-        super().__init__(state=state)
+        super().__init__(state=np.asarray(self.state_0))
 
-    def _derivatives(self, state: np.ndarray, u: np.ndarray) -> np.ndarray:
-        pass
+    def _derivatives(self, state: np.ndarray, u) -> np.ndarray:
+        xdot = np.zeros((6, 1))
+        xdot[0:3] = state[3:6]
+
+        z, height, theta, zdot, heightdot, thetadot = state.T.tolist()[0]
+        force_left, force_right, z_target = u
+
+        combined_mass = self.center_mass + 2 * self.wing_mass
+        combined_moi = self.center_moi + 2 * self.wing_mass * self.wing_spacing**2
+
+        a_matrix = np.zeros((3, 3))
+        a_matrix[0, 0] = combined_mass
+        a_matrix[1, 1] = combined_mass
+        a_matrix[2, 2] = combined_moi
+
+        b_vector = np.array([
+            [-(force_right + force_left) * np.sin(theta) - self.drag * zdot],
+            [-combined_mass * self.gravity + (force_right + force_left) * np.cos(theta)],
+            [self.wing_spacing * (force_right - force_left)],
+        ])
+        xdot[3:6] = np.linalg.solve(a_matrix, b_vector)
+        return xdot
 
     def outputs(self) -> np.ndarray:
         pass
+
+    def _animation_outputs(self, u) -> List:
+        return [self.state.item(0), u[2], self.state.item(1), self.state.item(2)]
 
 
 if __name__ == '__main__':
