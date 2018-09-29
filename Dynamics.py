@@ -12,8 +12,8 @@ class Dynamics(ABC):
     def __init__(self, state: np.ndarray):
         self.state: np.ndarray = state
         global_params = parameters.GlobalParameters
-        self.sample_rate = global_params['sample_rate']
-        self.gravity = global_params['gravity']
+        self.sample_rate = global_params.sample_rate
+        self.gravity = global_params.gravity
 
     def propagate_dynamics(self, u):
 
@@ -59,12 +59,12 @@ class MassSpringDamper(Dynamics):
 
     def __init__(self):
         params = parameters.MassSpringDamper
-        self.mass = params['mass']
-        self.spring_const = params['spring_const']
-        self.damping = params['damping']
+        self.mass = params.mass
+        self.spring_const = params.spring_const
+        self.damping = params.damping
         state = np.array([
-            [params['z_0']],
-            [params['zdot_0']]
+            [params.z_0],
+            [params.zdot_0]
         ])
         super().__init__(state=state)
 
@@ -98,14 +98,14 @@ class BallAndBeam(Dynamics):
 
     def __init__(self):
         params = parameters.BallAndBeam
-        self.beam_length = params['beam_length']
-        self.beam_mass = params['beam_mass']
-        self.ball_mass = params['ball_mass']
+        self.beam_length = params.beam_length
+        self.beam_mass = params.beam_mass
+        self.ball_mass = params.ball_mass
         state = np.array([
-            [params['z_0']],
-            [params['theta_0']],
-            [params['zdot_0']],
-            [params['thetadot_0']]
+            [params.z_0],
+            [params.theta_0],
+            [params.zdot_0],
+            [params.thetadot_0]
         ])
         super().__init__(state=state)
 

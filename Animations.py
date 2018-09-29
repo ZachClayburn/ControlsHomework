@@ -1,6 +1,6 @@
 import math
 from abc import ABC
-from typing import Iterable, List, Tuple, Callable, Sequence
+from typing import Iterable, List, Tuple, Callable
 
 import matplotlib.animation as animation
 import matplotlib.artist as artist
@@ -44,11 +44,11 @@ class MassSpringDamper(Animation):
     In this system, q is z, where z is the displacement of the mass from equilibrium
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self):
         super().__init__()
-        params = {**kwargs, **parameters.MassSpringDamper}
-        self._width = params['width']
-        self._height = params['height']
+        params = parameters.MassSpringDamper
+        self._width = params.width
+        self._height = params.height
         self.mass: patches.Rectangle = None
 
     def get_init_func(self, q_0: Tuple[float]) -> Callable[[], List[artist.Artist]]:
@@ -74,12 +74,12 @@ class BallAndBeam(Animation):
     the origin and theta is the beams angle, in radians.
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self):
         super().__init__()
-        params = {**kwargs, **parameters.BallAndBeam}
-        self.beamLength = params['beam_length']
-        self.beamWidth = params['beam_width']
-        self.ballRadius = params['ball_radius']
+        params = parameters.BallAndBeam
+        self.beamLength = params.beam_length
+        self.beamWidth = params.beam_width
+        self.ballRadius = params.ball_radius
         self.beam: patches.Rectangle = None
         self.ball: patches.Circle = None
 
@@ -119,14 +119,14 @@ class PlanarVTOL(Animation):
     vehicle's C.O.M. and theta is the ccw rotation about the C.O.M. of the vehicle from vertical.
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self):
         super().__init__()
-        params = {**kwargs, **parameters.PlanarVTOL}
-        self.bodyWidth = params['bodyWidth']
-        self.bodyHeight = params['bodyHeight']
-        self.wingSpacing = params['wingSpacing']
-        self.wingMajorAxis = params['wingMajorAxis']
-        self.wingMinorAxis = params['wingMinorAxis']
+        params = parameters.PlanarVTOL
+        self.bodyWidth = params.body_width
+        self.bodyHeight = params.body_height
+        self.wingSpacing = params.wing_spacing
+        self.wingMajorAxis = params.wing_major_axis
+        self.wingMinorAxis = params.wing_minor_axis
 
         self.body: patches.Rectangle = None
         self.leftWing: patches.Ellipse = None
