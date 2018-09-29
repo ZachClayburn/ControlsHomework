@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Iterable, List
 
 import numpy as np
 
@@ -10,17 +11,28 @@ class Dynamics(ABC):
 
     def __init__(self, state: np.ndarray):
         self.state: np.ndarray = state
+        global_params = parameters.GlobalParameters
+        self.sample_rate = global_params['sample_rate']
+
+    def propagate_dynamics(self, u):
+
+        # Integrate ODE using 4th order Runge-Kutta method
+        k1 = self._derivatives(self.state, u)
+        k2 = self._derivatives(self.state + self.sample_rate/2*k1, u)
+        k3 = self._derivatives(self.state + self.sample_rate/2*k2, u)
+        k4 = self._derivatives(self.state + self.sample_rate*k3, u)
+        self.state += self.sample_rate/6 * (k1 + 2*k2 + 2*k3 + k4)
 
     @abstractmethod
-    def propagate_dynamics(self) -> np.ndarray:
-        raise NotImplementedError()
-
-    @abstractmethod
-    def derivatives(self, u: np.ndarray) -> np.ndarray:
+    def _derivatives(self, state: np.ndarray, u) -> np.ndarray:
         raise NotImplementedError()
 
     @abstractmethod
     def outputs(self) -> np.ndarray:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def _animation_outputs(self)-> List:
         raise NotImplementedError()
 
     def states(self) -> np.ndarray:
@@ -30,22 +42,49 @@ class Dynamics(ABC):
         """
         return self.state
 
+    def run_sim(self, inputs: Iterable) ->Iterable:
+        for u in inputs:
+            self.propagate_dynamics(u)
+            yield self._animation_outputs()
+
 
 class MassSpringDamper(Dynamics):
+    """
+    The dynamics simulation of the MassSpringDamper
+
+    The state is in the form (z, zdot)T
+    The output is in the form z
+    """
 
     def __init__(self):
         params = parameters.MassSpringDamper
-        state = np.array([])
+        self.mass = params['mass']
+        self.spring_const = params['spring_const']
+        self.damping = params['damping']
+        state = np.array([
+            [params['z_0']],
+            [params['zdot_0']]
+        ])
         super().__init__(state=state)
 
-    def propagate_dynamics(self) -> np.ndarray:
-        pass
+    def _derivatives(self, state: np.ndarray, u) -> np.ndarray:
+        A = np.array([
+            [0, 1],
+            [-self.spring_const / self.mass, -self.damping / self.mass]
+        ])
+        B = np.array([
+            [0],
+            [1 / self.mass]
+        ])
 
-    def derivatives(self, u: np.ndarray) -> np.ndarray:
-        pass
+        return A @ state + B * u
 
     def outputs(self) -> np.ndarray:
         pass
+
+    def _animation_outputs(self) -> List:
+        z = self.state.item(0)
+        return [z]
 
 
 class BallAndBeam(Dynamics):
@@ -55,10 +94,7 @@ class BallAndBeam(Dynamics):
         state = np.ndarray([])
         super().__init__(state=state)
 
-    def propagate_dynamics(self) -> np.ndarray:
-        pass
-
-    def derivatives(self, u: np.ndarray) -> np.ndarray:
+    def _derivatives(self, state: np.ndarray, u: np.ndarray) -> np.ndarray:
         pass
 
     def outputs(self) -> np.ndarray:
@@ -72,11 +108,13 @@ class PlanarVTOL(Dynamics):
         state = np.ndarray([])
         super().__init__(state=state)
 
-    def propagate_dynamics(self) -> np.ndarray:
-        pass
-
-    def derivatives(self, u: np.ndarray) -> np.ndarray:
+    def _derivatives(self, state: np.ndarray, u: np.ndarray) -> np.ndarray:
         pass
 
     def outputs(self) -> np.ndarray:
         pass
+
+
+if __name__ == '__main__':
+    msd = MassSpringDamper()
+    msd.propagate_dynamics(1)

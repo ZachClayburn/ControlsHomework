@@ -1,6 +1,6 @@
 import math
 from abc import ABC
-from typing import Iterable, List, Tuple, Callable
+from typing import Iterable, List, Tuple, Callable, Sequence
 
 import matplotlib.animation as animation
 import matplotlib.artist as artist
@@ -51,19 +51,19 @@ class MassSpringDamper(Animation):
         self._height = params['height']
         self.mass: patches.Rectangle = None
 
-    def get_init_func(self, q_0) -> Callable[[], List[artist.Artist]]:
+    def get_init_func(self, q_0: Tuple[float]) -> Callable[[], List[artist.Artist]]:
         def init_func() -> List[artist.Artist]:
             bound = self._height * 4
             self.axis.set_xbound((-bound + self._height) / 2, (bound + self._height) / 2)
             self.axis.set_ybound(0, bound)
-            self.mass = patches.Rectangle((q_0, 0), self._width, self._height)
+            self.mass = patches.Rectangle((q_0[0], 0), self._width, self._height)
             self.axis.add_patch(self.mass)
             return [self.mass, ]
         return init_func
 
-    def get_step_func(self) -> Callable[[Tuple], List[artist.Artist]]:
-        def func(q_current):
-            self.mass.xy = (q_current, 0)
+    def get_step_func(self) -> Callable[[Tuple[float]], List[artist.Artist]]:
+        def func(q_current: Tuple[float]):
+            self.mass.xy = (q_current[0], 0)
             return [self.mass, ]
         return func
 
@@ -83,7 +83,7 @@ class BallAndBeam(Animation):
         self.beam: patches.Rectangle = None
         self.ball: patches.Circle = None
 
-    def get_init_func(self, q_0) -> Callable[[], List[artist.Artist]]:
+    def get_init_func(self, q_0: Tuple[float, float]) -> Callable[[], List[artist.Artist]]:
         def init_func() -> List[artist.Artist]:
             bound = self.beamLength * 1.1
             self.axis.set_xbound(-bound, bound)
@@ -102,8 +102,8 @@ class BallAndBeam(Animation):
             return [self.beam, self.ball, ]
         return init_func
 
-    def get_step_func(self) -> Callable[[Tuple], List[artist.Artist]]:
-        def func(q_current):
+    def get_step_func(self) -> Callable[[Tuple[float, float]], List[artist.Artist]]:
+        def func(q_current: Tuple[float, float]):
             rotation = _get_rotation(q_current[1])
             self.beam.angle = math.degrees(q_current[1])
             self.beam.xy = rotation @ np.array([[0, -self.beamWidth / 2]]).T
@@ -133,7 +133,7 @@ class PlanarVTOL(Animation):
         self.rightWing: patches.Ellipse = None
         self.target: patches.Rectangle = None
 
-    def get_init_func(self, q_0) -> Callable[[], List[artist.Artist]]:
+    def get_init_func(self, q_0: Tuple[float, float, float, float]) -> Callable[[], List[artist.Artist]]:
         def init_func() -> List[artist.Artist]:
             self.axis.set_ybound(0, 4)
             self.axis.set_xbound(-2, 2)
@@ -161,8 +161,8 @@ class PlanarVTOL(Animation):
             return [self.body, self.leftWing, self.rightWing, self.target, ]
         return init_func
 
-    def get_step_func(self) -> Callable[[Tuple], List[artist.Artist]]:
-        def func(q_current):
+    def get_step_func(self) -> Callable[[Tuple[float, float, float, float]], List[artist.Artist]]:
+        def func(q_current: Tuple[float, float, float, float]):
             rotation = _get_rotation(q_current[3])
             center_of_mass_xy = np.array([[q_current[0], q_current[2]]]).T
 
