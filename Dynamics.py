@@ -13,6 +13,7 @@ class Dynamics(ABC):
         self.state: np.ndarray = state
         global_params = parameters.GlobalParameters
         self.sample_rate = global_params['sample_rate']
+        self.gravity = global_params['gravity']
 
     def propagate_dynamics(self, u):
 
@@ -53,7 +54,7 @@ class MassSpringDamper(Dynamics):
     The dynamics simulation of the MassSpringDamper
 
     The state is in the form (z, zdot)T
-    The output is in the form z
+    The animation output is in the form z
     """
 
     def __init__(self):
@@ -88,17 +89,46 @@ class MassSpringDamper(Dynamics):
 
 
 class BallAndBeam(Dynamics):
+    """
+    The dynamics simulation for the BallAndBeam System
+
+    The state is in the form (z, theta, zdot, thetaDot)T
+    The animation output is in the form (z, theta)T
+    """
 
     def __init__(self):
         params = parameters.BallAndBeam
-        state = np.ndarray([])
+        self.beam_length = params['beam_length']
+        self.beam_mass = params['beam_mass']
+        self.ball_mass = params['ball_mass']
+        state = np.array([
+            [params['z_0']],
+            [params['theta_0']],
+            [params['zdot_0']],
+            [params['thetadot_0']]
+        ])
         super().__init__(state=state)
 
-    def _derivatives(self, state: np.ndarray, u: np.ndarray) -> np.ndarray:
-        pass
+    def _derivatives(self, state: np.ndarray, u) -> np.ndarray:
+        xdot = np.zeros((4, 1))
+
+        z, theta, zdot, thetadot = state.T.tolist()[0]
+
+        xdot[0:2] = state[2:4]
+        xdot[2] = z * thetadot**2 - self.gravity * np.sin(theta)
+        xdot[3] = u * self.beam_length * np.cos(theta) -\
+                  2 * self.ball_mass * z * zdot * thetadot -\
+                  self.ball_mass * self.gravity * z * np.cos(theta) -\
+                  self.beam_mass * self.gravity * self.beam_length / 2 * np.cos(theta)
+        xdot[3] /= self.beam_mass * self.beam_length**2 / 3 + self.ball_mass * z**2
+
+        return xdot
 
     def outputs(self) -> np.ndarray:
         pass
+
+    def _animation_outputs(self) -> List:
+        return self.state[0:2].T.tolist()[0]
 
 
 class PlanarVTOL(Dynamics):

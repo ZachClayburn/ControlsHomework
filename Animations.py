@@ -77,9 +77,9 @@ class BallAndBeam(Animation):
     def __init__(self, **kwargs):
         super().__init__()
         params = {**kwargs, **parameters.BallAndBeam}
-        self.beamLength = params['beamLength']
-        self.beamWidth = params['beamWidth']
-        self.ballRadius = params['ballRadius']
+        self.beamLength = params['beam_length']
+        self.beamWidth = params['beam_width']
+        self.ballRadius = params['ball_radius']
         self.beam: patches.Rectangle = None
         self.ball: patches.Circle = None
 

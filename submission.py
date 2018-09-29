@@ -4,11 +4,11 @@ from typing import List
 import matplotlib.animation as mpl_animation
 
 
-def view_animation(animation: Animation, q_0: List[int], q) -> mpl_animation.FuncAnimation:
+def view_animation(animation: Animation, q_0: List[float], q) -> mpl_animation.FuncAnimation:
     return animation.animate(q_0, q)
 
 
-def save_movie(animation: Animation, q_0, q, save_file_name: str):
+def save_movie(animation: Animation, q_0: List[float], q, save_file_name: str):
     fig = animation.figure
     ax = animation.axis
 
