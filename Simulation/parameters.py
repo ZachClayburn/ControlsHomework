@@ -47,3 +47,10 @@ class PlanarVTOL:
         [0.0],
         [0.0],
     ]
+    z_target_0 = 0
+    animation_0 = [
+        state_0[0][0],
+        z_target_0,
+        state_0[1][0],
+        state_0[2][0],
+    ]

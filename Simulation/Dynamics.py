@@ -3,8 +3,7 @@ from typing import Iterable, List
 
 import numpy as np
 
-
-import parameters
+from Simulation import parameters
 
 
 class Dynamics(ABC, parameters.GlobalParameters):

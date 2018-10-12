@@ -1,4 +1,4 @@
-from Animations import Animation
+from Simulation.Animations import Animation
 from matplotlib.artist import Artist
 from typing import List
 import matplotlib.animation as mpl_animation

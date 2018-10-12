@@ -8,7 +8,7 @@ import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import numpy as np
 
-import parameters
+from Simulation import parameters
 
 
 class Animation(ABC):
