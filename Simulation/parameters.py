@@ -13,6 +13,7 @@ class MassSpringDamper:
         [0.0],
         [0.0]
     ]
+    animation_0 = state_0[0]
 
 
 class BallAndBeam:

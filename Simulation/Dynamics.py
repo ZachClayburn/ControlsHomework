@@ -29,7 +29,7 @@ class Dynamics(ABC, parameters.GlobalParameters):
         raise NotImplementedError()
 
     @abstractmethod
-    def _animation_outputs(self, u)-> List:
+    def animation_outputs(self, u)-> List:
         raise NotImplementedError()
 
     def states(self) -> np.ndarray:
@@ -42,7 +42,7 @@ class Dynamics(ABC, parameters.GlobalParameters):
     def run_sim(self, inputs: Iterable) ->Iterable:
         for u in inputs:
             self.propagate_dynamics(u)
-            yield self._animation_outputs(u)
+            yield self.animation_outputs(u)
 
 
 class MassSpringDamper(Dynamics, parameters.MassSpringDamper):
@@ -54,25 +54,30 @@ class MassSpringDamper(Dynamics, parameters.MassSpringDamper):
     """
     def __init__(self):
         super().__init__(state=np.asarray(self.state_0))
-
-    def _derivatives(self, state: np.ndarray, u) -> np.ndarray:
-        A = np.array([
+        self.A = np.array([
             [0, 1],
             [-self.spring_const / self.mass, -self.damping / self.mass]
         ])
-        B = np.array([
+        self.B = np.array([
             [0],
             [1 / self.mass]
         ])
 
-        return A @ state + B * u
+    def _derivatives(self, state: np.ndarray, u) -> np.ndarray:
+        return self.A @ state + self.B * u
 
     def outputs(self) -> np.ndarray:
         pass
 
-    def _animation_outputs(self, u) -> List:
+    def animation_outputs(self, u) -> List:
         z = self.state.item(0)
         return [z]
+
+    def __getattr__(self, item):
+        return {
+            'z': self.state.item(0),
+            'zdot': self.state.item(1),
+        }[item]
 
 
 class BallAndBeam(Dynamics, parameters.BallAndBeam):
@@ -104,8 +109,16 @@ class BallAndBeam(Dynamics, parameters.BallAndBeam):
     def outputs(self) -> np.ndarray:
         pass
 
-    def _animation_outputs(self, u) -> List:
+    def animation_outputs(self, u) -> List:
         return self.state[0:2].T.tolist()[0]
+
+    def __getattr__(self, item):
+        return {
+            'z': self.state.item(0),
+            'theta': self.state.item(1),
+            'zdot': self.state.item(2),
+            'thetadot': self.state.item(3),
+        }[item]
 
 
 class PlanarVTOL(Dynamics, parameters.PlanarVTOL):
@@ -146,8 +159,18 @@ class PlanarVTOL(Dynamics, parameters.PlanarVTOL):
     def outputs(self) -> np.ndarray:
         pass
 
-    def _animation_outputs(self, u) -> List:
+    def animation_outputs(self, u) -> List:
         return [self.state.item(0), u[2], self.state.item(1), self.state.item(2)]
+
+    def __getattr__(self, item):
+        return {
+            'z': self.state.item(0),
+            'height': self.state.item(1),
+            'theta': self.state.item(2),
+            'zdot': self.state.item(3),
+            'heightdot': self.state.item(4),
+            'thetadot': self.state.item(5),
+        }[item]
 
 
 if __name__ == '__main__':

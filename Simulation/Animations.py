@@ -16,6 +16,8 @@ class Animation(ABC):
     An abstract class for all animation classes
     """
 
+    milliseconds_per_frame: int = 40
+
     def __init__(self):
         self._do_init = True
         self.figure = plt.figure()
@@ -36,7 +38,7 @@ class Animation(ABC):
 
     def animate(self, q_0, q: Iterable = None):
         return animation.FuncAnimation(self.figure, func=self.get_step_func(), init_func=self.get_init_func(q_0),
-                                       blit=True, frames=q, interval=40, repeat=False)
+                                       blit=True, frames=q, interval=self.milliseconds_per_frame, repeat=False)
 
 
 class MassSpringDamper(Animation):
@@ -58,12 +60,14 @@ class MassSpringDamper(Animation):
             self.axis.set_ybound(0, bound)
             self.mass = patches.Rectangle((q_0[0], 0), self._width, self._height)
             self.axis.add_patch(self.mass)
+            print('init func called')
             return [self.mass, ]
         return init_func
 
     def get_step_func(self) -> Callable[[Tuple[float]], List[artist.Artist]]:
         def func(q_current: Tuple[float]):
             self.mass.xy = (q_current[0], 0)
+            print('step func called')
             return [self.mass, ]
         return func
 
