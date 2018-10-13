@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Iterable, List
+import time
 
 import numpy as np
 
@@ -70,8 +71,7 @@ class MassSpringDamper(Dynamics, parameters.MassSpringDamper):
         pass
 
     def animation_outputs(self, u) -> List:
-        z = self.state.item(0)
-        return [z]
+        return [self.z]
 
     def __getattr__(self, item):
         return {

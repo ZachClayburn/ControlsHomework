@@ -33,7 +33,7 @@ class Simulation(ABC):
 class MassSpringDamper(Simulation):
     animation: Animations.MassSpringDamper
     dynamics: Dynamics.MassSpringDamper
-    _controller: Controller.Controller
+    _controller: Controller.MassSpringDamper
 
     def __init__(self):
         self.animation = Animations.MassSpringDamper()
@@ -43,3 +43,9 @@ class MassSpringDamper(Simulation):
 
     def add_controller(self, controller: Type[Controller.MassSpringDamper], *args, **kwargs):
         self._controller = controller(self, *args, **kwargs)
+
+
+class BallAndBeam(Simulation):
+    animation: Animations.BallAndBeam
+    dynamics: Dynamics.BallAndBeam
+    _controller: Controller.

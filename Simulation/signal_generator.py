@@ -40,5 +40,5 @@ def sin(time: float, frequency: float = 1, amplitude: float = 1, y_offset: float
 
 
 def constant(time: float, frequency: float = 1, amplitude: float = 1, y_offset: float = 0) -> float:
-    return y_offset
+    return amplitude + y_offset
 
