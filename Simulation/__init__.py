@@ -1,8 +1,6 @@
 import itertools
 from abc import ABC
-from typing import Type, Iterable, List, Union
-
-import numpy as np
+from typing import Type, Iterable, List, Union, Tuple
 
 from . import Animations, Dynamics, Controller
 
@@ -17,7 +15,10 @@ class Simulation(ABC):
     def __init__(self, initial_position: List[float]):
         self.initial_positions = initial_position
 
-    def view_animation(self, requests: Iterable[float]):
+    def add_controller(self, controller: Type[Controller.Controller], *args, **kwargs):
+        self._controller = controller(self, *args, **kwargs)
+
+    def view_animation(self, requests: Iterable[Union[float, Tuple]]):
         return self.animation.animate(self.initial_positions, self._step_func(requests))
 
     def _step_func(self, requests: Iterable[Union[float, tuple]]) -> Iterable:
@@ -38,14 +39,29 @@ class MassSpringDamper(Simulation):
     def __init__(self):
         self.animation = Animations.MassSpringDamper()
         self.dynamics = Dynamics.MassSpringDamper()
-        self._controller: Controller.MassSpringDamper = None
+        self._controller = None
         super().__init__(self.dynamics.animation_0)
-
-    def add_controller(self, controller: Type[Controller.MassSpringDamper], *args, **kwargs):
-        self._controller = controller(self, *args, **kwargs)
 
 
 class BallAndBeam(Simulation):
     animation: Animations.BallAndBeam
     dynamics: Dynamics.BallAndBeam
-    _controller: Controller.
+    _controller: Controller.BallAndBeam
+
+    def __init__(self):
+        self.animation = Animations.BallAndBeam()
+        self.dynamics = Dynamics.BallAndBeam()
+        self._controller = None
+        super().__init__(self.dynamics.animation_0)
+
+
+class PlanarVTOL(Simulation):
+    animation: Animations.PlanarVTOL
+    dynamics: Dynamics.PlanarVTOL
+    _controller: Controller.PlanarVTOL
+
+    def __init__(self):
+        self.animation = Animations.PlanarVTOL()
+        self.dynamics = Dynamics.PlanarVTOL()
+        self._controller = None
+        super().__init__(self.dynamics.animation_0)

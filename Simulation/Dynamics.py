@@ -165,10 +165,10 @@ class PlanarVTOL(Dynamics, parameters.PlanarVTOL):
     def __getattr__(self, item):
         return {
             'z': self.state.item(0),
-            'height': self.state.item(1),
+            'h': self.state.item(1),
             'theta': self.state.item(2),
             'zdot': self.state.item(3),
-            'heightdot': self.state.item(4),
+            'hdot': self.state.item(4),
             'thetadot': self.state.item(5),
         }[item]
 
