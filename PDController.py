@@ -65,7 +65,7 @@ class BallAndBeam(Simulation.Controller.BallAndBeam):
     def _theta_callback(self, theta_request: float):
         error = theta_request - self.dynamics.theta
         force_tilde = self.proportional_gain_theta * error - self.dynamics.thetadot * self.derivative_gain_theta
-
+        print(force_tilde)
         z_equilibrium = self.dynamics.z
         ball_mass = self.dynamics.ball_mass
         beam_mass = self.dynamics.beam_mass
@@ -126,7 +126,7 @@ class PlanarVTOL(Simulation.Controller.BallAndBeam):
         d = self.dynamics.wing_spacing
         transform = np.array([
             [1, 1],
-            [d, -d],
+            [-d, d],
         ])
 
         x = np.array([
