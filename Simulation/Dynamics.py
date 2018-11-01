@@ -57,11 +57,11 @@ class MassSpringDamper(Dynamics, parameters.MassSpringDamper):
         super().__init__(state=np.asarray(self.state_0))
         self.A = np.array([
             [0, 1],
-            [-self.spring_const / self.mass, -self.damping / self.mass]
+            [-self.spring_const_real / self.mass_real, -self.damping_real / self.mass_real]
         ])
         self.B = np.array([
             [0],
-            [1 / self.mass]
+            [1 / self.mass_real]
         ])
 
     def _derivatives(self, state: np.ndarray, u) -> np.ndarray:
@@ -98,11 +98,11 @@ class BallAndBeam(Dynamics, parameters.BallAndBeam):
 
         xdot[0:2] = state[2:4]
         xdot[2] = z * thetadot**2 - self.gravity * np.sin(theta)
-        xdot[3] = u * self.beam_length * np.cos(theta) -\
-                  2 * self.ball_mass * z * zdot * thetadot -\
-                  self.ball_mass * self.gravity * z * np.cos(theta) -\
-                  self.beam_mass * self.gravity * self.beam_length / 2 * np.cos(theta)
-        xdot[3] /= self.beam_mass * self.beam_length**2 / 3 + self.ball_mass * z**2
+        xdot[3] = u * self.beam_length_real * np.cos(theta) -\
+                  2 * self.ball_mass_real * z * zdot * thetadot -\
+                  self.ball_mass_real * self.gravity * z * np.cos(theta) -\
+                  self.beam_mass_real * self.gravity * self.beam_length_real / 2 * np.cos(theta)
+        xdot[3] /= self.beam_mass_real * self.beam_length_real**2 / 3 + self.ball_mass_real * z**2
 
         return xdot
 
@@ -140,8 +140,8 @@ class PlanarVTOL(Dynamics, parameters.PlanarVTOL):
         z, height, theta, zdot, heightdot, thetadot = state.T.tolist()[0]
         force_left, force_right, z_target = u
 
-        combined_mass = self.center_mass + 2 * self.wing_mass
-        combined_moi = self.center_moi + 2 * self.wing_mass * self.wing_spacing**2
+        combined_mass = self.center_mass_real + 2 * self.wing_mass
+        combined_moi = self.center_moi_real + 2 * self.wing_mass * self.wing_spacing_real**2
 
         a_matrix = np.zeros((3, 3))
         a_matrix[0, 0] = combined_mass
@@ -149,9 +149,9 @@ class PlanarVTOL(Dynamics, parameters.PlanarVTOL):
         a_matrix[2, 2] = combined_moi
 
         b_vector = np.array([
-            [-(force_right + force_left) * np.sin(theta) - self.drag * zdot],
+            [-(force_right + force_left) * np.sin(theta) - self.drag_real * zdot],
             [-combined_mass * self.gravity + (force_right + force_left) * np.cos(theta)],
-            [self.wing_spacing * (force_right - force_left)],
+            [self.wing_spacing_real * (force_right - force_left)],
         ])
         xdot[3:6] = np.linalg.solve(a_matrix, b_vector)
         return xdot
