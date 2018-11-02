@@ -11,7 +11,7 @@ def _perturbation(value: float):
 
 
 class GlobalParameters:
-    sample_rate = 0.04
+    sample_rate = 0.01
     sample_rate_real = _perturbation(sample_rate)
     gravity = 9.8
 
