@@ -30,7 +30,7 @@ def d_10():
 def e_10():
     bnb = Sim.BallAndBeam()
     max_force = 15.0
-    damping_ratio = 1 / (2 ** (1 / 2))
+    damping_ratio = 1 / (2 ** (1 / 2)) + 0.2
 
     length = bnb.dynamics.beam_length
     ball_mass = bnb.dynamics.ball_mass
@@ -40,12 +40,12 @@ def e_10():
     b_theta = length / ((beam_mass * length ** 2) / 3 + ball_mass * z_equilibrium ** 2)
 
     #  Tuning variables
-    rise_time_theta = 1
+    rise_time_theta = .5
     bandwidth_separation = 10
-    integration_gain_theta = 0
-    integration_gain_z = 0
-    threshold_theta = np.inf
-    threshold_z = np.inf
+    integration_gain_theta = .01
+    integration_gain_z = 0.001
+    threshold_theta = 0.0005
+    threshold_z = 0.02
 
     natural_frequency_theta = np.pi / (2 * rise_time_theta * (1 - damping_ratio ** 2) ** (1 / 2))
     proportional_gain_theta = natural_frequency_theta ** 2 / b_theta
@@ -62,8 +62,8 @@ def e_10():
                        threshold_z, threshold_theta, max_force)
 
     # a square wave with magnitude 0.25±0.15 meters and frequency 0.01 Hz
-    requests = sg.generator(sg.square, amplitude=0.15, y_offset=0.25, frequency=0.1,
-                            t_step=bnb.seconds_per_sim_step, t_final=30)
+    requests = sg.generator(sg.square, amplitude=0.15, y_offset=0.25, frequency=0.05,
+                            t_step=bnb.seconds_per_sim_step, t_final=90)
     handle = bnb.view_animation(requests)
     Sim.Animations.plt.waitforbuttonpress()
     Sim.Animations.plt.close()
