@@ -58,9 +58,9 @@ class BallAndBeam(Simulation.Controller.BallAndBeam):
 
     def _z_callback(self, z_request: float):
         error = z_request - self.dynamics.z
-        theta_request = self.proportional_gain_z * error - self.dynamics.zdot * self.derivative_gain_z
+        force = self.proportional_gain_z * error - self.dynamics.zdot * self.derivative_gain_z
 
-        return theta_request
+        return np.array([force, z_request])
 
     def _theta_callback(self, theta_request: float):
         error = theta_request - self.dynamics.theta
@@ -82,8 +82,7 @@ class BallAndBeam(Simulation.Controller.BallAndBeam):
             print(f'Saturation: {force}')
             force = -self.max_force
 
-        u = np.array([force])
-        return u
+        return force
 
 
 class PlanarVTOL(Simulation.Controller.BallAndBeam):

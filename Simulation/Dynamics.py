@@ -86,6 +86,7 @@ class BallAndBeam(Dynamics, parameters.BallAndBeam):
 
     The state is in the form (z, theta, zdot, thetaDot)T
     The animation output is in the form (z, theta)T
+    The input is in the form (force, z_r)
     """
 
     def __init__(self):
@@ -95,10 +96,11 @@ class BallAndBeam(Dynamics, parameters.BallAndBeam):
         xdot = np.zeros((4, 1))
 
         z, theta, zdot, thetadot = state.T.tolist()[0]
+        force, z_r = u.tolist()
 
         xdot[0:2] = state[2:4]
         xdot[2] = z * thetadot**2 - self.gravity * np.sin(theta)
-        xdot[3] = u * self.beam_length_real * np.cos(theta) -\
+        xdot[3] = force * self.beam_length_real * np.cos(theta) -\
                   2 * self.ball_mass_real * z * zdot * thetadot -\
                   self.ball_mass_real * self.gravity * z * np.cos(theta) -\
                   self.beam_mass_real * self.gravity * self.beam_length_real / 2 * np.cos(theta)
@@ -109,8 +111,8 @@ class BallAndBeam(Dynamics, parameters.BallAndBeam):
     def outputs(self) -> np.ndarray:
         pass
 
-    def animation_outputs(self, u) -> List:
-        return self.state[0:2].T.tolist()[0]
+    def animation_outputs(self, u: np.ndarray) -> List:
+        return [self.z, u.item(1), self.theta]
 
     def __getattr__(self, item):
         return {

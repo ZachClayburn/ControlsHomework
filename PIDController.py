@@ -65,11 +65,11 @@ class BallAndBeam(Simulation.Controller.BallAndBeam):
         self.thresh_theta = thresh_theta
         self.thresh_z = thresh_z
 
-        self.prev_z: float = 0.0
+        self.prev_z: float = self.dynamics.z
         self.prev_error_z: float = 0.0
         self.int_z: float = 0.0
 
-        self.prev_theta: float = 0.0
+        self.prev_theta: float = self.dynamics.theta
         self.prev_error_theta: float = 0.0
         self.int_theta: float = 0.0
 
@@ -93,7 +93,7 @@ class BallAndBeam(Simulation.Controller.BallAndBeam):
 
         # print(f"Z Requested:{request} Force:{force}")
 
-        u = np.array([force])
+        u = np.array([force, request])
         return u
 
     def _z_callback(self, z_request: float) -> float:
@@ -102,7 +102,6 @@ class BallAndBeam(Simulation.Controller.BallAndBeam):
         z = self.dynamics.z
         error = z_request - z
         z_dot = (z - self.prev_z) / dt
-        print(f"measured:{self.dynamics.zdot} calculated:{z_dot}")
         error_dot = (error - self.prev_error_z) / dt
 
         if abs(error_dot) < self.thresh_z:

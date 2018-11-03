@@ -72,8 +72,8 @@ class MassSpringDamper(Animation):
 
 class BallAndBeam(Animation):
     """
-    In this system, q is in the form (z, theta)' where z is the balls distance from
-    the origin and theta is the beams angle, in radians.
+    In this system, q is in the form (z, z_r, theta)' where z is the balls distance from
+    the origin, z_r is the requested z, and theta is the beams angle, in radians.
     """
 
     def __init__(self):
@@ -84,6 +84,7 @@ class BallAndBeam(Animation):
         self.ballRadius = params.ball_radius
         self.beam: patches.Rectangle = None
         self.ball: patches.Circle = None
+        self.expected: patches.Circle = None
 
     def get_init_func(self, q_0: Tuple[float, float]) -> Callable[[], List[artist.Artist]]:
         def init_func() -> List[artist.Artist]:
@@ -91,7 +92,7 @@ class BallAndBeam(Animation):
             self.axis.set_xbound(-bound, bound)
             self.axis.set_ybound(-bound, bound)
 
-            rotation = _get_rotation(q_0[1])
+            rotation = _get_rotation(q_0[2])
 
             xy_rectangle = rotation @ np.array([[0, -self.beamWidth / 2]]).T
             self.beam = patches.Rectangle(xy_rectangle, self.beamLength, self.beamWidth, q_0[0])
@@ -101,16 +102,21 @@ class BallAndBeam(Animation):
             self.ball = patches.Circle(ball_xy, self.ballRadius, facecolor='red')
             self.axis.add_patch(self.ball)
 
-            return [self.beam, self.ball, ]
+            expected_xy = rotation @ np.array([[q_0[1], 0]]).T
+            self.expected = patches.Circle(expected_xy, self.beamWidth, facecolor='red')
+            self.axis.add_patch(self.expected)
+
+            return [self.beam, self.ball, self.expected]
         return init_func
 
     def get_step_func(self) -> Callable[[Tuple[float, float]], List[artist.Artist]]:
         def func(q_current: Tuple[float, float]):
-            rotation = _get_rotation(q_current[1])
-            self.beam.angle = math.degrees(q_current[1])
+            rotation = _get_rotation(q_current[2])
+            self.beam.angle = math.degrees(q_current[2])
             self.beam.xy = rotation @ np.array([[0, -self.beamWidth / 2]]).T
             self.ball.center = rotation @ np.array([[q_current[0], self.ballRadius + self.beamWidth / 2]]).T
-            return [self.beam, self.ball, ]
+            self.expected.center = rotation @ np.array([[q_current[1], 0]]).T
+            return [self.beam, self.ball, self.expected]
         return func
 
 

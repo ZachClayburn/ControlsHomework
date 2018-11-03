@@ -47,7 +47,7 @@ class BallAndBeam:
         [0.0],
         [0.0]
     ]
-    animation_0 = [state_0[0][0], state_0[1][0]]
+    animation_0 = [state_0[0][0], state_0[0][0], state_0[1][0]]
 
 
 class PlanarVTOL:
