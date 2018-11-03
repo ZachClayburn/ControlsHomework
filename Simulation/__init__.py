@@ -2,6 +2,9 @@ import itertools
 from abc import ABC
 from typing import Type, Iterable, List, Union, Tuple
 
+import matplotlib.animation as mpl_animation
+from matplotlib.artist import Artist
+
 from . import Animations, Dynamics, Controller
 
 
@@ -20,6 +23,37 @@ class Simulation(ABC):
 
     def view_animation(self, requests: Iterable[Union[float, Tuple]]):
         return self.animation.animate(self.initial_positions, self._step_func(requests))
+
+    def save_movie(self, requests: Iterable[Union[float, Tuple]], save_file_name: str):
+        fig = self.animation.figure
+        ax = self.animation.axis
+
+        def update_blit(artists_list: List[Artist]):
+            fig.canvas.restore_region(bg_cache)
+            for artist in artists_list:
+                artist.axes.draw_artist(artist)
+
+            ax.figure.canvas.blit(ax.bbox)
+
+        artist_list = self.animation.get_init_func(self.initial_positions)()
+        step_func = self.animation.get_step_func()
+
+        for a in artist_list:
+            a.set_animated(True)
+
+        fig.canvas.draw()
+        bg_cache = fig.canvas.copy_from_bbox(ax.bbox)
+
+        # movie_writer = mpl_animation.MovieWriter(fps=25, )
+        ffmpeg_writer = mpl_animation.writers['ffmpeg']
+        movie_writer = ffmpeg_writer(fps=25)
+
+        with movie_writer.saving(fig, save_file_name, 100):
+            movie_writer.grab_frame()
+            for frame in self._step_func(requests):
+                artist_list = step_func(frame)
+                update_blit(artist_list)
+                movie_writer.grab_frame()
 
     def _step_func(self, requests: Iterable[Union[float, tuple]]) -> Iterable:
         for request, t_mill in \

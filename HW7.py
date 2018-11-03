@@ -3,7 +3,6 @@ import numpy as np
 import PIDController as PID
 import Simulation as Sim
 import Simulation.signal_generator as sg
-import Simulation.parameters as params
 
 
 def d_10():
@@ -21,9 +20,9 @@ def d_10():
 
     request = sg.generator(sg.constant, amplitude=2/3, t_step=msd.seconds_per_sim_step, t_final=20)
 
-    handle = msd.view_animation(request)
-    Sim.Animations.plt.waitforbuttonpress()
-    Sim.Animations.plt.close()
+    handle = msd.save_movie(request, 'out/HW7D.mp4')
+    # Sim.Animations.plt.waitforbuttonpress()
+    # Sim.Animations.plt.close()
     return handle
 
 
@@ -64,9 +63,9 @@ def e_10():
     # a square wave with magnitude 0.25±0.15 meters and frequency 0.05 Hz
     requests = sg.generator(sg.square, amplitude=0.15, y_offset=0.25, frequency=0.05,
                             t_step=bnb.seconds_per_sim_step, t_final=20)
-    handle = bnb.view_animation(requests)
-    Sim.Animations.plt.waitforbuttonpress()
-    Sim.Animations.plt.close()
+    handle = bnb.save_movie(requests, 'out/HW7E.mp4')
+    # Sim.Animations.plt.waitforbuttonpress()
+    # Sim.Animations.plt.close()
     return handle
 
 
@@ -117,13 +116,13 @@ def f_10():
         sg.generator(sg.constant, y_offset=1, t_step=pvt.seconds_per_sim_step, t_final=20),
         sg.generator(sg.sin, frequency=0.08, y_offset=0, amplitude=2.5, t_step=pvt.seconds_per_sim_step, t_final=20),
     )
-    handle = pvt.view_animation(request)
-    Sim.Animations.plt.waitforbuttonpress()
-    Sim.Animations.plt.close()
+    handle = pvt.save_movie(request, 'out/HW7F.mp4')
+    # Sim.Animations.plt.waitforbuttonpress()
+    # Sim.Animations.plt.close()
     return handle
 
 
 if __name__ == '__main__':
-    # d_10()
-    # e_10()
+    d_10()
+    e_10()
     f_10()
