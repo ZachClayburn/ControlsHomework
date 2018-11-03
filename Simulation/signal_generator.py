@@ -39,6 +39,10 @@ def sin(time: float, frequency: float = 1, amplitude: float = 1, y_offset: float
     return amplitude * np.sin(2 * np.pi * frequency * time) + y_offset
 
 
+def cos(time: float, frequency: float = 1, amplitude: float = 1, y_offset: float = 0) -> float:
+    return amplitude * np.cos(2 * np.pi * frequency * time) + y_offset
+
+
 def constant(time: float, frequency: float = 1, amplitude: float = 1, y_offset: float = 0) -> float:
     return amplitude + y_offset
 

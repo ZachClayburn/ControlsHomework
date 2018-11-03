@@ -143,8 +143,10 @@ class PlanarVTOL(Animation):
 
     def get_init_func(self, q_0: Tuple[float, float, float, float]) -> Callable[[], List[artist.Artist]]:
         def init_func() -> List[artist.Artist]:
-            self.axis.set_ybound(0, 4)
-            self.axis.set_xbound(-2, 2)
+            scale = 8
+            horizontal_shift = 0
+            self.axis.set_ybound(0, scale)
+            self.axis.set_xbound(-scale / 2 + horizontal_shift, scale / 2 + horizontal_shift)
 
             rotation = _get_rotation(q_0[3])
             center_of_mass_xy = np.array([[q_0[0], q_0[2]]]).T
