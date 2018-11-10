@@ -1,4 +1,6 @@
 import random
+import numpy as np
+
 
 
 randomness_parameter = 0.0
@@ -30,9 +32,21 @@ class MassSpringDamper:
         [0.0]
     ]
     animation_0 = state_0[0]
+    A = np.asarray([
+        [0, 1],
+        [-spring_const / mass, -damping / mass],
+    ])
+    B = np.asarray([
+        [0],
+        [1 / mass],
+    ])
+    C = np.asarray([
+        [1, 0],
+    ])
+    D = np.asarray([[0]])
 
 
-class BallAndBeam:
+class BallAndBeam(GlobalParameters):
     beam_length = 0.5
     beam_length_real = _perturbation(beam_length)
     beam_width = 0.01
@@ -48,6 +62,27 @@ class BallAndBeam:
         [0.0]
     ]
     animation_0 = [state_0[0][0], state_0[0][0], state_0[1][0]]
+    _denom = ((beam_mass * beam_length ** 2) / 3 + ball_mass * (beam_length / 2) ** 2)
+    A = np.asarray([
+        [0, 0, 1, 0],
+        [0, 0, 0, 1],
+        [0, GlobalParameters.gravity, 0, 1],
+        [-ball_mass * GlobalParameters.gravity / _denom, 0, 0, 0],
+    ])
+    B = np.asarray([
+        [0],
+        [0],
+        [0],
+        [beam_length / _denom],
+    ])
+    C = np.asarray([
+        [1, 0, 0, 0],
+        [0, 1, 0, 0],
+    ])
+    D = np.asarray([
+        [0],
+        [0],
+    ])
 
 
 class PlanarVTOL:
@@ -79,3 +114,35 @@ class PlanarVTOL:
         state_0[1][0],
         state_0[2][0],
     ]
+    A_lat = np.asarray([
+        [0, 0, 1, 0],
+        [0, 0, 0, 1],
+        [0, -GlobalParameters.gravity, -drag / (center_mass + 2 * wing_mass), 0],
+        [0, 0, 0, 0],
+    ])
+    B_lat = np.asarray([
+        [0],
+        [0],
+        [0],
+        [1 / (center_moi + 2 * wing_mass * wing_spacing ** 2)],
+    ])
+    C_lat = np.asarray([
+        [1, 0, 0, 0],
+        [0, 1, 0, 0],
+    ])
+    D_lat = np.asarray([
+        [0],
+        [0],
+    ])
+    A_lon = np.asarray([
+        [0, 1],
+        [0, 0],
+    ])
+    B_lon = np.asarray([
+        [0],
+        [1 / (center_mass + 2 * wing_mass)]
+    ])
+    C_lon = np.asarray([
+        [1, 0],
+    ])
+    D_lon = np.asarray([[0]])

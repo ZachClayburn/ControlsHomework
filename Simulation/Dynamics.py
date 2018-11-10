@@ -55,17 +55,17 @@ class MassSpringDamper(Dynamics, parameters.MassSpringDamper):
     """
     def __init__(self):
         super().__init__(state=np.asarray(self.state_0))
-        self.A = np.array([
+        self.A_real = np.array([
             [0, 1],
             [-self.spring_const_real / self.mass_real, -self.damping_real / self.mass_real]
         ])
-        self.B = np.array([
+        self.B_real = np.array([
             [0],
             [1 / self.mass_real]
         ])
 
     def _derivatives(self, state: np.ndarray, u) -> np.ndarray:
-        return self.A @ state + self.B * u
+        return self.A_real @ state + self.B_real * u
 
     def outputs(self) -> np.ndarray:
         pass
