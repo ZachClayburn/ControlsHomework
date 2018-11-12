@@ -34,6 +34,7 @@ class MassSpringDamper(Simulation.Controller.MassSpringDamper):
         force = - self.feedback_gains.dot(state) + self.reference_gain * z_r
 
         if force > self.max_force:
+            print(f"Force saturated: {force[0]}")
             force[0] = self.max_force
 
         return force
@@ -41,7 +42,7 @@ class MassSpringDamper(Simulation.Controller.MassSpringDamper):
 
 class BallAndBeam(Simulation.Controller.BallAndBeam):
 
-    def __init__(self, system: Simulation.MassSpringDamper,
+    def __init__(self, system: Simulation.BallAndBeam,
                  feedback_gains: np.ndarray, reference_gain: np.ndarray,
                  max_force: float = np.inf):
         super().__init__()
@@ -64,8 +65,13 @@ class BallAndBeam(Simulation.Controller.BallAndBeam):
         self.prev_z = z
         self.prev_theta = theta
 
+        z_equilibrium = self.dynamics.z_equilibrium
+
+        equilibrium_force = self.dynamics.gravity * \
+            (self.dynamics.ball_mass * z_equilibrium / self.dynamics.beam_length + self.dynamics.beam_mass / 2)
+
         state = np.asarray([
-            [z],
+            [z - z_equilibrium],  # Small error
             [theta],
             [z_dot],
             [theta_dot],
@@ -73,19 +79,16 @@ class BallAndBeam(Simulation.Controller.BallAndBeam):
 
         z_r = np.asarray(request)
         z_r.shape = (1, 1)
-        u = - self.feedback_gains.dot(state) + self.reference_gain * z_r
-
-        equilibrium_force = \
-            self.dynamics.gravity * \
-            (self.dynamics.ball_mass * self.dynamics.z /
-             self.dynamics.beam_length + self.dynamics.beam_mass / 2)
+        u = - self.feedback_gains.dot(state) + self.reference_gain * (z_r - z_equilibrium)
 
         u[0] += equilibrium_force
 
         if u > self.max_force:
+            # print(f"Saturated: {u}")
             u[0] = self.max_force
 
-        return np.concatenate((u, z_r)).T[0]
+        ret_val = np.concatenate((u, z_r)).T[0]
+        return ret_val
 
 
 class PlanarVTOL(Simulation.Controller.PlanarVTOL):

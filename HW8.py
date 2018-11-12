@@ -11,12 +11,15 @@ def d_11():
     max_force = 2.0
     damping_ratio = 1 / (2 ** (1 / 2))
 
-    mass = msd.dynamics.mass
-    spring_const = msd.dynamics.spring_const
-    natural_frequency = ((spring_const + max_force) / mass) ** (1 / 2)
+    rise_time = 2.0
+
+    # mass = msd.dynamics.mass
+    # spring_const = msd.dynamics.spring_const
+    # natural_frequency = ((spring_const + max_force) / mass) ** (1 / 2)
+    natural_frequency = np.pi / (2 * rise_time * (1 - damping_ratio ** 2) ** (1 / 2))
 
     # Part A
-    coefs = [1, 2 * damping_ratio * natural_frequency, natural_frequency * 2]
+    coefs = [1, 2 * damping_ratio * natural_frequency, natural_frequency ** 2] # Small error
     roots = np.roots(coefs)
     print(f"Roots: {roots}")
 
@@ -48,6 +51,8 @@ def d_11():
     Sim.Animations.plt.waitforbuttonpress()
     Sim.Animations.plt.close()
 
+    return handle
+
 
 def e_11():
     print('\n--E--\n')
@@ -57,7 +62,7 @@ def e_11():
 
     #  Tuning variables
     rise_time_theta = .5
-    bandwidth_separation = 10
+    bandwidth_separation = 2.4
 
     natural_frequency_theta = np.pi / (2 * rise_time_theta * (1 - damping_ratio ** 2) ** (1 / 2))
     rise_time_z = rise_time_theta * bandwidth_separation

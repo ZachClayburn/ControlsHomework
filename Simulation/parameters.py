@@ -2,7 +2,7 @@ import random
 import numpy as np
 
 
-randomness_parameter = 0.0
+randomness_parameter = 0.2
 upper = 1 + randomness_parameter
 lower = 1 - randomness_parameter
 
@@ -54,18 +54,19 @@ class BallAndBeam(GlobalParameters):
     ball_radius = 0.06
     ball_mass = 0.35
     ball_mass_real = _perturbation(ball_mass)
+    z_equilibrium = beam_length / 2
     state_0 = [
-        [beam_length / 2],
+        [z_equilibrium],
         [0.0],
         [0.0],
         [0.0]
     ]
     animation_0 = [state_0[0][0], state_0[0][0], state_0[1][0]]
-    _denom = ((beam_mass * beam_length ** 2) / 3 + ball_mass * (beam_length / 2) ** 2)
+    _denom = ((beam_mass * beam_length ** 2) / 3 + ball_mass * z_equilibrium ** 2)
     A = np.asarray([
         [0, 0, 1, 0],
         [0, 0, 0, 1],
-        [0, GlobalParameters.gravity, 0, 1],
+        [0, -GlobalParameters.gravity, 0, 1],
         [-ball_mass * GlobalParameters.gravity / _denom, 0, 0, 0],
     ])
     B = np.asarray([
