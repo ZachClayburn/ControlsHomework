@@ -2,7 +2,6 @@ import random
 import numpy as np
 
 
-
 randomness_parameter = 0.0
 upper = 1 + randomness_parameter
 lower = 1 - randomness_parameter

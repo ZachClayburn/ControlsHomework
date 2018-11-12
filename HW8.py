@@ -1,10 +1,12 @@
 import Simulation as Sim
 import control.matlab as ctrl
 import numpy as np
+import Simulation.signal_generator as sg
+import SSController
 
 
 def d_11():
-    print('\n--C--\n')
+    print('\n--D--\n')
     msd = Sim.MassSpringDamper()
     max_force = 2.0
     damping_ratio = 1 / (2 ** (1 / 2))
@@ -39,7 +41,12 @@ def d_11():
     print(f"Reference gain: {reference_gain}")
 
     # Part E
-    # TODO
+    msd.add_controller(SSController.MassSpringDamper,
+                       feedback_gain, reference_gain, max_force)
+    request = sg.generator(sg.constant, amplitude=2/3, t_step=msd.seconds_per_sim_step, t_final=20)
+    handle = msd.view_animation(request)
+    Sim.Animations.plt.waitforbuttonpress()
+    Sim.Animations.plt.close()
 
 
 def e_11():
@@ -85,7 +92,14 @@ def e_11():
     print(f"Reference gain: {reference_gain}")
 
     # Part E
-    # TODO
+    bnb.add_controller(SSController.BallAndBeam, feedback_gain, reference_gain, max_force)
+    requests = sg.generator(sg.square, amplitude=0.15, y_offset=0.25, frequency=0.05,
+                            t_step=bnb.seconds_per_sim_step, t_final=20)
+
+    handle = bnb.view_animation(requests)
+    Sim.Animations.plt.waitforbuttonpress()
+    Sim.Animations.plt.close()
+    return handle
 
 
 def f_11():
@@ -156,10 +170,23 @@ def f_11():
     print(f"Longitudinal reference gain: {reference_gain_lon}")
 
     # Part E
-    # TODO
+    request = zip(
+        sg.generator(sg.constant, y_offset=1, t_step=pvt.seconds_per_sim_step, t_final=20),
+        sg.generator(sg.sin, frequency=0.08, y_offset=0, amplitude=2.5, t_step=pvt.seconds_per_sim_step, t_final=20),
+    )
+
+    pvt.add_controller(SSController.PlanarVTOL,
+                       feedback_gain_lat, reference_gain_lat,
+                       feedback_gain_lon, reference_gain_lon,
+                       max_force)
+
+    handel = pvt.view_animation(request)
+    Sim.Animations.plt.waitforbuttonpress()
+    Sim.Animations.plt.close()
+    return handel
 
 
 if __name__ == '__main__':
-    d_11()
-    e_11()
+    # d_11()
+    # e_11()
     f_11()

@@ -136,6 +136,7 @@ class BallAndBeam(Simulation.Controller.BallAndBeam):
 
 
 class PlanarVTOL(Simulation.Controller.PlanarVTOL):
+
     def __init__(self, system: Simulation.PlanarVTOL,
                  proportional_gain_h: float, derivative_gain_h: float, integrator_gain_h: float,
                  proportional_gain_z: float, derivative_gain_z: float, integrator_gain_z: float,
