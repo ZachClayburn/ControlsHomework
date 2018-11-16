@@ -2,7 +2,9 @@ import itertools
 from abc import ABC
 from typing import Type, Iterable, List, Union, Tuple
 
+import numpy as np
 import matplotlib.animation as mpl_animation
+import matplotlib.pyplot as plt
 from matplotlib.artist import Artist
 
 from . import Animations, Dynamics, Controller
@@ -22,7 +24,7 @@ class Simulation(ABC):
         self._controller = controller(self, *args, **kwargs)
 
     def view_animation(self, requests: Iterable[Union[float, Tuple]]):
-        return self.animation.animate(self.initial_positions, self._step_func(requests))
+        return self.animation.animate(self.initial_positions, self._steps(requests))
 
     def save_movie(self, requests: Iterable[Union[float, Tuple]], save_file_name: str):
         fig = self.animation.figure
@@ -50,12 +52,28 @@ class Simulation(ABC):
 
         with movie_writer.saving(fig, save_file_name, 100):
             movie_writer.grab_frame()
-            for frame in self._step_func(requests):
+            for frame in self._steps(requests):
                 artist_list = step_func(frame)
                 update_blit(artist_list)
                 movie_writer.grab_frame()
 
-    def _step_func(self, requests: Iterable[Union[float, tuple]]) -> Iterable:
+    def view_plot(self, requests: Iterable[Union[float, Tuple]]):
+        fig = self.animation.figure
+        ax = self.animation.axis
+
+        time = []
+        state = []
+
+        for request, t_mill in \
+                zip(requests, itertools.count(0, self.milliseconds_per_sim_step)):
+            time.append(t_mill / 1000)
+            u = self._controller.callback(request)
+            self.dynamics.propagate_dynamics(u)
+            state.append(self.dynamics.z)
+
+        ax.plot(time, state)
+
+    def _steps(self, requests: Iterable[Union[float, tuple]]) -> Iterable:
         for request, t_mill in \
                 zip(requests, itertools.count(0, self.milliseconds_per_sim_step)):
             u = self._controller.callback(request)
